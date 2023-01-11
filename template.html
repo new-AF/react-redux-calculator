@@ -27,9 +27,16 @@
 			margin: 0;
 		}
 		*{
-			outline:1px solid black;
-			font-family: monospace, sans-serif;
+			outline:2px solid black;
+			font-family: 'Lucida Consolas', monospace, 'Tahoma', sans-serif;
 			color: black
+		}
+		button{
+			cursor:pointer;
+		}
+		button:hover{
+			
+			filter: brightness(1.5);
 		}
 	</style>
 </head>
@@ -45,23 +52,38 @@
 		//------------------------------- actions -------------------------------//
 
 		//------------------------------- new state -------------------------------//
+		const state0={
+			'display':'0',
+			'button-brightness':1
+					
+		}
+		
 		//state & return new state
-		const reducer=(state=0, action)=>{
+		const reducer=(state={...state0}, action)=>{
+			const newState={...state};
+			
 			switch(action.type){
+				case 'num-button-click':
+					const {info:value}= action;
+					
+					newState['display']=value;
+					return newState;
 
+				
 				default:
-					return state;
+					return newState;
 				}
 
 		}
 		//--------------------------- map state to props ---------------------------//
 		//which parts of state to access
-		const mapStateToProps= state=>({
-		});
+		const mapStateToProps= state=>(state);
 		//--------------------------- map state to props ---------------------------//
 		//
 		const mapDispatchToProps= dispatchFunction=>({
-
+			'do-num-button-click': (event,text)=>dispatchFunction({type:'num-button-click', info:text}),
+			'do-button-hover': event=>dispatchFunction({type:'button-hover',target:event.target}),
+			'do-button-leave': event=>dispatchFunction({type:'button-mouse-leave',target:event.target}),
 		});
 		//react component Provider
 		const Provider = ReactRedux.Provider;
@@ -71,34 +93,63 @@
 		const store= Redux.createStore(reducer);
 		//--------------------------- Button ---------------------------//
 		const Button= props=> {
+			const {text,button}=props;
+
+			const style={
+				'background-color':'teal',
+				'padding': '1rem',
+				'font-size': '1rem',
+				'border':'0.1rem solid black',
+				/*simuate button hover effect*/
+				...props.style,
+			};
+			return <button style={style} onClick={e=>button['do-num-button-click'](e,text)}>
+				{text}
+			</button>;
+		};
+		//--------------------------- Display ---------------------------//
+		const Display= props=> {
 			const {text}=props;
 			
 			const style={
+				'grid-column':'1/4',
+				'display':'grid',
+				'grid-template-columns':'9fr 1fr',
+				'place-items':'stretch',
+				'align-self':'stretch',
+				'justify-self':'stretch',
+				'font-size': '1rem',
 				...props.style,
-				'padding': '1em 5em'
 			};
-			return <button style={style}>{text}</button>;
+			return <div style={style}>
+				<div>{text}</div>
+				<i className="fa-solid fa-delete-left"></i>
+			</div>;
 		};
 		//--------------------------- Control ---------------------------//
 		const Control= props=> {
+			const {text,button}=props;
 			
 			const style={
 				...props.style,
-				'padding': '1em 5em'
+				/*width:'50%',*/
+				display:'grid',
+				'grid-template-columns':'repeat(3,minmax(0,1fr))',
 			};
 			const countStyle={
-				'font-size': '2em'
+				'font-size': '2rem'
 			};
 			const buttonStyle={
 				'padding': '2em',
 				...countStyle
 			};
 
-			const array='0-1-2-3-4-5-6-7-8-9'.split('-').map(s=>
-				<Button text={s}/>
+			const array='1-2-3-4-5-6-7-8-9-0-.'.split('-').map(s=>
+				<Button text={s} button={button}/>
 			);
 			return (
 			<div style={style}>
+				<Display text={text}/>
 				{array}
 			</div>);
 		};
@@ -112,18 +163,28 @@
 			}
 			render(){
 				const headerFooterStyle={
-					'text-align':'center'
+					'text-align':'center',
+					'font-weight':'bold'
 				};
 				const style= {
+					'display':'grid',
+					'grid-template-rows': '0.5fr 1fr 0.5fr',
+					/**/
+					'align-items':'center',
+					'justify-items':'center',
+					/**/
 					'background-color': 'wheat',
-					'height': '100vh',
-					'padding': '0em 10em'
+					'height': '100vh'
+				};
+				const button={
+					...this.props
 				};
 				return (
 				<div style={style}>
 					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
 					
-					<Control count={this.props.count} inc={this.increment} dec={this.decrement}/>
+					<Control text={this.props['display']} 
+					button={button}/>
 					
 					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
 				</div>);
