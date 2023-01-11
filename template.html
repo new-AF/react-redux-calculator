@@ -38,6 +38,12 @@
 			
 			filter: brightness(1.5);
 		}
+		/*hover effect on icons too*/
+		i:hover{
+			
+			filter: brightness(1.5);
+		}
+
 	</style>
 </head>
   
@@ -53,9 +59,11 @@
 
 		//------------------------------- new state -------------------------------//
 		const state0={
-			'display':'0',
-			'button-brightness':1
-					
+			'value':0,
+			'display':'ready',
+			'button-brightness':1,
+			'num-button-border-top':'0.1rem solid black',
+			'num-button-border-left':'0.1rem solid black'
 		}
 		
 		//state & return new state
@@ -69,7 +77,21 @@
 					newState['display']=value;
 					return newState;
 
+				case 'clear-click':
+					newState['display']=state0['display'];
+					newState['value']=state0['value'];
+					return newState;
 				
+				case 'num-button-down':
+					action.target.style['border-bottom']= '0.2rem inset white';
+					action.target.style['border-right']= '0.2rem inset white';
+					return state;
+
+				case 'num-button-up':
+					action.target.style['border-bottom']= state0['num-button-border-top'];
+					action.target.style['border-right']= state0['num-button-border-left'];
+					return state;
+
 				default:
 					return newState;
 				}
@@ -82,8 +104,11 @@
 		//
 		const mapDispatchToProps= dispatchFunction=>({
 			'do-num-button-click': (event,text)=>dispatchFunction({type:'num-button-click', info:text}),
+			'do-clear-click': (event)=>dispatchFunction({type:'clear-click'}),
 			'do-button-hover': event=>dispatchFunction({type:'button-hover',target:event.target}),
 			'do-button-leave': event=>dispatchFunction({type:'button-mouse-leave',target:event.target}),
+			'do-num-button-down': event=>dispatchFunction({type:'num-button-down',target:event.target}),
+			'do-num-button-up': event=>dispatchFunction({type:'num-button-up',target:event.target})
 		});
 		//react component Provider
 		const Provider = ReactRedux.Provider;
@@ -93,48 +118,82 @@
 		const store= Redux.createStore(reducer);
 		//--------------------------- Button ---------------------------//
 		const Button= props=> {
-			const {text,button}=props;
+			const {text,all,id}=props;
 
 			const style={
 				'background-color':'teal',
 				'padding': '1rem',
-				'font-size': '1rem',
+				'font-size': '2rem',
 				'border':'0.1rem solid black',
-				/*simuate button hover effect*/
+				/*simuate button push effect*/
+				'border-top':all['num-button-border-top'],
+				'border-left':all['num-button-border-left'],
 				...props.style,
 			};
-			return <button style={style} onClick={e=>button['do-num-button-click'](e,text)}>
+			return <button id={id} style={style} onClick={e=>all['do-num-button-click'](e,text)}
+			onMouseDown={all['do-num-button-down']} onMouseUp={all['do-num-button-up']}
+			>
 				{text}
 			</button>;
 		};
 		//--------------------------- Display ---------------------------//
 		const Display= props=> {
-			const {text}=props;
+			const {text,all}=props;
 			
 			const style={
-				'grid-column':'1/4',
+				'grid-column':'1/5',
 				'display':'grid',
-				'grid-template-columns':'9fr 1fr',
+				'grid-template-columns':'3fr 1fr',
+				'grid-template-rows':'repeat(2,1fr)',
 				'place-items':'stretch',
 				'align-self':'stretch',
 				'justify-self':'stretch',
 				'font-size': '1rem',
+				'gap': '1rem',
 				...props.style,
 			};
-			return <div style={style}>
-				<div>{text}</div>
-				<i className="fa-solid fa-delete-left"></i>
+			
+			//result display
+			const display1Style={
+				'grid-column':'1/5',
+				'text-align':'right',
+				'font-size': '4rem'
+			};
+			
+			const clearStyle={
+				'grid-column':'4/5',
+				'grid-row':'2/3',
+				'cursor':'pointer',
+				color:'teal',
+				'font-size': '2rem'
+			};
+			
+			//user input display
+			const display2Style={
+				'grid-column':'1/4',
+				'grid-row':'2/3',
+				'text-align':'right',
+				'font-size': '2rem'
+			};
+			
+
+			return <div id='display' style={style}>
+				<div style={display1Style}>{text}</div>
+				<div style={display2Style}>{text}</div>
+				<i id='clear' style={clearStyle} className="fa-solid fa-delete-left" onClick={all['do-clear-click']}></i>
 			</div>;
 		};
-		//--------------------------- Control ---------------------------//
-		const Control= props=> {
-			const {text,button}=props;
+		//--------------------------- Operations ---------------------------//
+		const Operations= props=> {
+			const {text,all}=props;
 			
 			const style={
 				...props.style,
 				/*width:'50%',*/
 				display:'grid',
-				'grid-template-columns':'repeat(3,minmax(0,1fr))',
+				'grid-template-columns':'repeat(4,minmax(0,1fr))',
+				'grid-column':'1/5',
+				'margin':'0.5rem 0'
 			};
 			const countStyle={
 				'font-size': '2rem'
@@ -144,13 +203,43 @@
 				...countStyle
 			};
 
-			const array='1-2-3-4-5-6-7-8-9-0-.'.split('-').map(s=>
-				<Button text={s} button={button}/>
+			return (
+			<div style={style}>
+				<Button id="add" text={'+'} all={all}/>
+				<Button id="subtract" text={'-'} all={all}/>
+				<Button id="multiply" text={'x'} all={all}/>
+				<Button id="divide" text={'/'} all={all}/>
+			</div>);
+		};
+		//--------------------------- Control ---------------------------//
+		const Control= props=> {
+			const {text,all}=props;
+			
+			const style={
+				...props.style,
+				/*width:'50%',*/
+				display:'grid',
+				'grid-template-columns':'repeat(4,minmax(0,1fr))',
+			};
+			const countStyle={
+				'font-size': '2rem'
+			};
+			const buttonStyle={
+				'padding': '2em',
+				...countStyle
+			};
+
+			const array='1/one 2/two 3/three 4/four 5/five 6/six 7/seven 8/eight 9/nine 0/zero ./decimal'.split(' ').map(s0=>{
+				const [s,id]=s0.split('/');
+				return <Button text={s} id={id} all={all}/>;
+				}
 			);
 			return (
 			<div style={style}>
-				<Display text={text}/>
+				<Display text={text} all={all}/>
+				<Operations all={all}/>
 				{array}
+				<Button text={'='} id="equals" all={all} style={{'background-color':'tomato'}}/>
 			</div>);
 		};
 
@@ -176,7 +265,7 @@
 					'background-color': 'wheat',
 					'height': '100vh'
 				};
-				const button={
+				const all={
 					...this.props
 				};
 				return (
@@ -184,7 +273,7 @@
 					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
 					
 					<Control text={this.props['display']} 
-					button={button}/>
+					all={all}/>
 					
 					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
 				</div>);
