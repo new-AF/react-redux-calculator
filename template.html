@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>
+		
+	</title>
+	<script src="./libraries/babel.min.js"></script>
+	<script src="./libraries/react.development.js"></script>
+	<script src="./libraries/react-dom.development.js"></script>
+	
+	<!-- redux https://unpkg.com/redux@4.2.0/dist/redux.js -->
+	<script src="./libraries/redux.js"></script>
+	
+	<!-- react-redux https://cdnjs.cloudflare.com/ajax/libs/react-redux/8.0.5/react-redux.js -->
+	<script src="./libraries/react-redux.js"></script>
+	
+	<!-- font awesome icons -->
+	<link href='./libraries/css/all.css' rel='stylesheet'>
+
+	
+	
+	
+	<style>
+		body{
+			margin: 0;
+		}
+		*{
+			outline:1px solid black;
+			font-family: monospace, sans-serif;
+			color: black
+		}
+	</style>
+</head>
+  
+<body>
+	<main>
+		<div id="react-container-1" class="react-container">
+		
+		<div>
+	</main>
+	
+	<script type="text/babel">
+		//------------------------------- actions -------------------------------//
+
+		//------------------------------- new state -------------------------------//
+		//state & return new state
+		const reducer=(state=0, action)=>{
+			switch(action.type){
+
+				default:
+					return state;
+				}
+
+		}
+		//--------------------------- map state to props ---------------------------//
+		//which parts of state to access
+		const mapStateToProps= state=>({
+		});
+		//--------------------------- map state to props ---------------------------//
+		//
+		const mapDispatchToProps= dispatchFunction=>({
+
+		});
+		//react component Provider
+		const Provider = ReactRedux.Provider;
+		//connect function
+		const connect= ReactRedux.connect;
+		//store i.e. STATE object
+		const store= Redux.createStore(reducer);
+		//--------------------------- Button ---------------------------//
+		const Button= props=> {
+			const {text}=props;
+			
+			const style={
+				...props.style,
+				'padding': '1em 5em'
+			};
+			return <button style={style}>{text}</button>;
+		};
+		//--------------------------- Control ---------------------------//
+		const Control= props=> {
+			
+			const style={
+				...props.style,
+				'padding': '1em 5em'
+			};
+			const countStyle={
+				'font-size': '2em'
+			};
+			const buttonStyle={
+				'padding': '2em',
+				...countStyle
+			};
+
+			const array='0-1-2-3-4-5-6-7-8-9'.split('-').map(s=>
+				<Button text={s}/>
+			);
+			return (
+			<div style={style}>
+				{array}
+			</div>);
+		};
+
+		//--------------------------- App ---------------------------//
+		//component App WITHOUT LOCAL STATE
+		class App extends React.Component{
+			constructor(props){
+				super(props);
+			
+			}
+			render(){
+				const headerFooterStyle={
+					'text-align':'center'
+				};
+				const style= {
+					'background-color': 'wheat',
+					'height': '100vh',
+					'padding': '0em 10em'
+				};
+				return (
+				<div style={style}>
+					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
+					
+					<Control count={this.props.count} inc={this.increment} dec={this.decrement}/>
+					
+					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
+				</div>);
+			}
+		}
+		//--------------------------- App2 ---------------------------//
+		const App2= connect(mapStateToProps, mapDispatchToProps)(App);
+		
+		//--------------------------- AppWrapper ---------------------------//
+		//react componentAppWrapper
+		class AppWrapper extends React.Component{
+			constructor(props){
+				super(props);		
+			}
+			render(){
+				//store prop IS REQUIRED.
+				return (<Provider store={store}>
+					<App2/>
+				</Provider>);
+			}
+		}
+	
+		//--------------------------- attach AppWrapper to document ---------------------------//
+		const container=document.querySelector('#react-container-1');
+		ReactDOM.render(<AppWrapper/>,container);
+
+	</script>
+	
+	<!-- free code camp test suite -->
+	<script src="./libraries/test bundle.js"></script>
+
+	
+</body>
+
+</html>
