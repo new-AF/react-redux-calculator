@@ -60,7 +60,8 @@
 		//------------------------------- new state -------------------------------//
 		const state0={
 			'value':0,
-			'display':'ready',
+			'display-1':'ready',
+			'display-2':'',/*user input*/
 			'button-brightness':1,
 			'num-button-border-top':'0.1rem solid black',
 			'num-button-border-left':'0.1rem solid black'
@@ -74,11 +75,12 @@
 				case 'num-button-click':
 					const {info:value}= action;
 					
-					newState['display']=value;
+					newState['display-2']+=value;
 					return newState;
 
 				case 'clear-click':
-					newState['display']=state0['display'];
+					newState['display-1']=state0['display-1'];
+					newState['display-2']=state0['display-2'];
 					newState['value']=state0['value'];
 					return newState;
 				
@@ -122,7 +124,6 @@
 
 			const style={
 				'background-color':'teal',
-				'padding': '1rem',
 				'font-size': '2rem',
 				'border':'0.1rem solid black',
 				/*simuate button push effect*/
@@ -138,7 +139,8 @@
 		};
 		//--------------------------- Display ---------------------------//
 		const Display= props=> {
-			const {text,all}=props;
+			const {all}=props;
+			const {'display-1':text1,'display-2':text2}=all;
 			
 			const style={
 				'grid-column':'1/5',
@@ -172,13 +174,14 @@
 				'grid-column':'1/4',
 				'grid-row':'2/3',
 				'text-align':'right',
-				'font-size': '2rem'
+				'font-size': '2rem',
+				'overflow-x':'auto'
 			};
 			
 
-			return <div id='display' style={style}>
-				<div style={display1Style}>{text}</div>
-				<div style={display2Style}>{text}</div>
+			return <div style={style}>
+				<div id='display' style={display1Style}>{text1}</div>
+				<div id='display2' style={display2Style}>{text2}</div>
 				<i id='clear' style={clearStyle} className="fa-solid fa-delete-left" onClick={all['do-clear-click']}></i>
 			</div>;
 		};
@@ -249,6 +252,12 @@
 				super(props);
 			
 			}
+			componentDidMount(){
+				const display2= document.querySelector('#display2');
+				display2.style.width= `${display2.clientWidth}`;
+				console.log(display2,display2.clientWidth,display2.style.width);
+				
+			}
 			render(){
 				const headerFooterStyle={
 					'text-align':'center',
@@ -262,16 +271,21 @@
 					'justify-items':'center',
 					/**/
 					'background-color': 'wheat',
-					'height': '100vh'
+					'height': '100vh',
+					
 				};
 				const all={
 					...this.props
+				};
+				
+				//calculator
+				const calcStyle={
 				};
 				return (
 				<div style={style}>
 					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
 					
-					<Control text={this.props['display']} 
+					<Control style={calcStyle} text={this.props['display']} 
 					all={all}/>
 					
 					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
