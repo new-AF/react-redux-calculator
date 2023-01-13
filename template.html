@@ -60,7 +60,8 @@
 		//------------------------------- new state -------------------------------//
 		const errors={
 			'div-by-zero': 'Invalid operation, division by zero',
-			'leading-zeros':'Invalid input, leading zero values'
+			'leading-zeros':'Invalid input, leading zero values',
+			'exp':'Invalid expression'
 		};
 		const state0={
 			'value':0,
@@ -102,7 +103,7 @@
 						...state,
 						'error': error,
 						'display-1-initial': error===false ? false : true,
-						'display-1': error? (isLeadingZeros? errors['leading-zeros'] : 'some error' ) : newValue
+						'display-1': error? (isLeadingZeros? errors['leading-zeros'] : errors['exp'] ) : newValue
 					};
 
 				case 'clear-click':
@@ -115,11 +116,23 @@
 					};
 				
 				case 'equals-click':
-					console.log('==',state['display-1']);
+					const value0=state['display-1'];
+					/*1. put parenthesis around negative terms; of syntax -iiiii as (-iiiii) */
+					let newValue0= value0.replace(/-\d+/g,s=>`(${s})`);
+					console.log('old value',value0);
+					console.log('new value 1',newValue0);
+					/*2. for every >=2 cosecutive operators, only keep last operator*/
+					newValue0= value0.replace(/[+-x/{2,}]/g,s=>s.at(-1));
+					console.log('new value 2',newValue0);
+					/*replace 'x' with '*'*/
+					newValue0=newValue0.replace(/x/g,'*');
+					/*eval uate math expression*/
+					newValue0=eval(newValue0);
+					
 					return {
 						...state,
 						'display-1-initial': true,
-						'display-1':state0['display-1'],
+						'display-1':newValue0,
 						'display-2':state0['display-2'],
 						'value':state0['value']
 					};
