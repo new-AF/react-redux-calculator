@@ -55,9 +55,74 @@
 	</main>
 	
 	<script type="text/babel">
+		const evalExp=(value0,returnSteps=false)=>{
+			const steps=[];
+			steps.push(`original,		${value0}`);
+			
+			/*0. sanitize input; removing everything that is not part of a math expression*/
+			let newValue0= value0.replace(/[^+\-x*/\.\d]/g,'');
+			steps.push(`--- step 0,		${newValue0}`);
+			
+			/*00. remove 'consecutive' .
+			
+			e.g.
+			511.5.5.5.5		=>		511.5555
+			*/
+			newValue0=newValue0.replace(/(\d+\.)+\d+/g,s=>{
+				//get 511.
+				const s1=s.match(/\d+\./);
+				
+				//get .5.5.5.5
+				const s2=s.match(/(\.\d+)+/g)[0];
+				
+				//remove . from .5.5.5.5
+				const s22=s2.replace(/\./g,'');
+				
+				return `${s1}${s22}`;
+			})
+			
+			steps.push(`--- step 00,		${newValue0}`);
+			//console.log('--- new value 0',newValue0);
+			
+			/*1. replace 'x' with '*'*/
+			newValue0=newValue0.replace(/x/g,'*');
+			steps.push(`--- step 1,		${newValue0}`);
+			//console.log('--- new value 1',newValue0);
+			
+			/*2. ony put parenthesis around negative terms;
+				a.	there is atleast 1 operator before -
+			of syntax -iiiii as (-iiiii) 
+			
+			e.g.
+			5*-5	=>		5*(-5)
+			*/
+			newValue0=newValue0.replace(/([+\-*/]+)(-\d+(.\d+)?)/g,'$1($2)');
+			//newValue0= newValue0.replace(/-\d+(.\d+)?/g,s=>`+(${s})`);
+			steps.push(`--- step 2,		${newValue0}`);
+			//console.log('--- new value 2',newValue0);
+			
+			/*3. for every >=2 cosecutive operators, only keep last operator*/
+			
+			newValue0= newValue0.replace(/[+\-*/]{2,}/g,s=>s.at(-1));
+			//console.log('--- new value 3',newValue0);
+			steps.push(`--- step 3,		${newValue0}`);
+			
+			/*4. eval uate math expression*/
+			try{
+				newValue0=eval(newValue0);
+				//console.log('--- new value 4',newValue0);
+			}
+			catch(e){
+				newValue0='ERROR';
+			}
+			steps.push(`--- step 4,		${newValue0}`);
+			
+			return returnSteps===true ? [newValue0,steps] : newValue0;
+		}
 		//------------------------------- actions -------------------------------//
 
 		//------------------------------- new state -------------------------------//
+		const operators= ['+', '-', '*', '/'];
 		const errors={
 			'div-by-zero': 'Invalid operation, division by zero',
 			'leading-zeros':'Invalid input, leading zero values',
@@ -66,10 +131,10 @@
 		const state0={
 			'value':0,
 			'display-1':'0',
+			'prev-decimal-point':false,
 			'error':false,
 			'display-1-initial':true,
 			'display-2':'',/*user input*/
-			'button-brightness':1,
 			'num-button-border-top':'0.1rem solid black',
 			'num-button-border-left':'0.1rem solid black',
 			/*clear button*/
@@ -89,11 +154,24 @@
 
 			switch(action.type){
 				case 'num-button-click':
-					const {info:value}= action;
+					let {info:value}= action;
+					
+					//ignore consecutive decimal points
+					if(value==='.'){
+						if(state['prev-decimal-point']===true){
+							value='';
+						}
+						state['prev-decimal-point']=true;
+					}
+					else{
+						state['prev-decimal-point']=false;
+					}
+					
 					const wasInitial= state['display-1-initial']===true;
 					const isZero= value==='0';
+					
 					const isDecimalPoint= value==='.';
-					const newValue= wasInitial && isDecimalPoint===false ? value : state['display-1']+value;
+					const newValue= (wasInitial===false || isDecimalPoint===true || operators.includes(value)) ? state['display-1']+value : value;
 					
 					/*does number have leading zero vaules*/
 					const isLeadingZeros=/0\d+/.test(newValue)
@@ -117,17 +195,9 @@
 				
 				case 'equals-click':
 					const value0=state['display-1'];
-					/*1. put parenthesis around negative terms; of syntax -iiiii as (-iiiii) */
-					let newValue0= value0.replace(/-\d+/g,s=>`(${s})`);
 					console.log('old value',value0);
-					console.log('new value 1',newValue0);
-					/*2. for every >=2 cosecutive operators, only keep last operator*/
-					newValue0= value0.replace(/[+-x/{2,}]/g,s=>s.at(-1));
-					console.log('new value 2',newValue0);
-					/*replace 'x' with '*'*/
-					newValue0=newValue0.replace(/x/g,'*');
-					/*eval uate math expression*/
-					newValue0=eval(newValue0);
+					
+					const newValue0=evalExp(value0);
 					
 					return {
 						...state,
@@ -200,10 +270,11 @@
 			const {text,all,id,onClick}=props;
 
 			const style={
+				padding:'.5rem 1rem',
 				'background-color':'teal',
 				'font-size': '2rem',
 				'border':'0.1rem solid black',
-				/*simuate button push effect*/
+				/*simulate button push effect*/
 				'border-top':all['num-button-border-top'],
 				'border-left':all['num-button-border-left'],
 				...props.style,
@@ -341,7 +412,32 @@
 				const display2= document.querySelector('#display2');
 				display2.style.width= `${display2.clientWidth}`;
 				console.log(display2,display2.clientWidth,display2.style.width);
-				
+				/**/
+				let array=[
+					[' 5 . 5 . 5 '				,'5.55'		],
+					['0/2'						,'0'		],
+					[' 5 x 1 + 5 + 92 '			,'102'		],
+					[' 3 + 5 x 6 - 2 / 4 '		,'32.5'		],
+					[' 5 - 9 + 5 '				,'1'		],
+					[' 10.5 - 5.5 '				,'5'		],
+					[' 5 x 5.5 '				,'27.5'		],
+					[' 10.5 + 5.5 '				,'16'		],
+					[' 10 / 2.5 '				,'4'		],
+					[' 5 x - 5 '				,'-25'		],
+					[' 5 x - + 5 '				,'10'		],
+					[' 5 + + 5 '				,'10'		],
+					[' 5 - 2 '					,'3'		],
+					[' 3 / 2 '					,'1.5'		],
+					[' 5 + 5 '					,'10'		],
+					[' 10 + 3 '					,'13'		],
+					[' 2 / 7 '					,'0.2857142857142857'			]
+				];
+				array=array.map(sub=>{
+					const [e,v1]=sub;
+					const [v2,steps]=evalExp(e,true);
+					return sub.concat(v1==v2 ? v2 : [`expected ${v1}`,`got     ${v2}`,'steps:'].concat(steps).join('\n'));
+				});
+				console.table(array);
 			}
 			render(){
 				const headerFooterStyle={
