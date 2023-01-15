@@ -130,110 +130,111 @@
 		}
 		//------------------------------- actions -------------------------------//
 
-		//------------------------------- new state -------------------------------//
-		const operators= ['+', '-', '*', 'x', '/'];
+		//------------------------------- initial state -------------------------------//
 		const errors={
 			'div-by-zero': 'Invalid operation, division by zero',
 			'leading-zeros':'Invalid input, leading zero values',
 			'exp':'Invalid expression'
 		};
-		const state0={
-			'array':[],
-			'current':['0'],
-			'initial':true,/*bc 0*/
+		const calcState0={
+			'display':'0',
+			'initial-once':true,/*bc 0*/
+			'number':true,/*bc 0*/
+			'number-has-decimal-point':false,/*bc 0*/
 			'error':false,
-			'in-a-number':true,/*bc 0*/
-			'has-decimal-point':false,
-
-			'num-button-border-top':'0.1rem solid black',
-			'num-button-border-left':'0.1rem solid black',
-			/*clear button*/
-			'clear-button-border':'0.1rem solid black',
-
-			'clear-button-border-bottom-style':'solid',
-			'clear-button-border-right-style':'solid',
-			'clear-button-border-bottom-color':'black',
-			'clear-button-border-right-color':'black',
-		}
-		
-		//state & return new state
-		const reducer=(state={...state0, array:[...state0.array]}, action)=>{
 			
-			const array=state.array;
+		};
+		const numberButtonsState0={
+			'border-top':'0.1rem solid black',
+			'border-left':'0.1rem solid black',			
+		};
+		const clearButtonState0={
+			'border':'0.1rem solid black',
+			'border-bottom-style':'solid',
+			'border-bottom-color':'black',			
+			'border-right-style':'solid',
+			'border-right-color':'black',
+		};
+		
+		//------------------------------- reducers -------------------------------//
+		const calcReducer=(state={...calcState0}, action)=>{
+			
+			const {key}=action;
+			const newState={
+				...state
+			};
+			const isZero= key==='0'
 			
 			switch(action.type){
-				case 'operator-button-click':
-					return {
-						...state,
-						array: array.concat([state.current, action.value]),
-						current: []
-						
-					};
-
-				case 'num-button-click':
-					return {
-						...state,
-						current: current.concat
-						
-					};
 				
-				case 'decimal-point-click':
-
-				case 'clear-click':
+				default:
+					return state;
+			}
+		};
+		/*------------------------ end of buttonsReducer ------------------------*/
+		const clearButtonReducer=(state={...clearButtonState0}, action)=>{
+			switch(action.type){
 				
-				case 'equals-click':
-	
 				case 'clear-up':
-					//console.log('==',state['display-1']);
 					return {
-						...state,
-						'clear-button-border-bottom-color':state0['clear-button-border-bottom-color'],
-						'clear-button-border-right-color':state0['clear-button-border-right-color'],
-						'clear-button-border-bottom-style':state0['clear-button-border-bottom-style'],
-						'clear-button-border-right-style':state0['clear-button-border-right-style']
+						'border':clearButtonState0['border'],
+						'border-bottom-color':clearButtonState0['border-bottom-color'],
+						'border-right-color':clearButtonState0['border-right-color'],
+						'border-bottom-style':clearButtonState0['border-bottom-style'],
+						'border-right-style':clearButtonState0['border-right-style']
 					};
 				
 				case 'clear-down':
-					//console.log('==',state['display-1']);
 					return {
-						...state,
-						'clear-button-border-bottom-color':'gray',
-						'clear-button-border-right-color':'gray',
-						'clear-button-border-bottom-style':'inset',
-						'clear-button-border-right-style':'inset'
+						'border':clearButtonState0['border'],
+						'border-bottom-color':'gray',
+						'order-right-color':'gray',
+						'border-bottom-style':'inset',
+						'border-right-style':'inset'
 					};
-					
 				
+				default:
+					return state;
+			}
+				
+		}
+		
+		const numberButtonsReducer=(state={...numberButtonsState0}, action)=>{
+			
+			const target=action.target;
+			
+			switch(action.type){
 				case 'num-button-down':
-					action.target.style['border-bottom']= '0.1rem inset gray';
-					action.target.style['border-right']= '0.1rem inset gray';
+					target.style['border-bottom']= '0.1rem inset gray';
+					target.style['border-right']= '0.1rem inset gray';
 					return state;
 
 				case 'num-button-up':
-					action.target.style['border-bottom']= state0['num-button-border-top'];
-					action.target.style['border-right']= state0['num-button-border-left'];
+					target.style['border-bottom']= numberButtonsState0['border-top'];
+					target.style['border-right']= numberButtonsState0['border-left'];
 					return state;
 
 				default:
 					return state;
-				}
-
-		}
+			}
+		};
 		//--------------------------- map state to props ---------------------------//
 		//which parts of state to access
 		const mapStateToProps= state=>(state);
 		//--------------------------- map state to props ---------------------------//
 		//
 		const mapDispatchToProps= dispatchFunction=>({
-			'do-num-button-click': (event,text)=>dispatchFunction({type:'num-button-click', value:text}),
+			'do-number-button-click': (event,text)=>dispatchFunction({type:'number-button-click', value:text}),
 			'do-operator-button-click': (event,text)=>dispatchFunction({type:'operator-button-click', value:text}),
-			'do-decimal-point-click': (event)=>dispatchFunction({type:'decimal-point-click'}),
-			'do-clear-click': (event)=>dispatchFunction({type:'clear-click'}),
-			'do-equals-click': (event)=>dispatchFunction({type:'equals-click'}),
+			'do-decimal-point-click': (event)=>dispatchFunction({type:'decimal-point-button-click'}),
+			'do-clear-button-click': (event)=>dispatchFunction({type:'clear-button-click'}),
+			'do-equals-button-click': (event)=>dispatchFunction({type:'equals-button-click'}),
+			/*---*/
 			'do-button-hover': event=>dispatchFunction({type:'button-hover',target:event.target}),
 			'do-button-leave': event=>dispatchFunction({type:'button-mouse-leave',target:event.target}),
 			'do-num-button-down': event=>dispatchFunction({type:'num-button-down',target:event.target}),
 			'do-num-button-up': event=>dispatchFunction({type:'num-button-up',target:event.target}),
+			/*---*/
 			'do-clear-down': event=>dispatchFunction({type:'clear-down'}),
 			'do-clear-up': event=>dispatchFunction({type:'clear-up'})
 
@@ -243,31 +244,33 @@
 		//connect function
 		const connect= ReactRedux.connect;
 		//store i.e. STATE object
-		const store= Redux.createStore(reducer);
+		const store= Redux.createStore(Redux.combineReducers({
+			calcState:			calcReducer,
+			numKeysStyleState:	numberButtonsReducer,
+			clearState:			clearButtonReducer
+		}));
 		//--------------------------- Button ---------------------------//
 		const Button= props=> {
-			const {text,all,id,onClick}=props;
+			const {text,id,onClick,onMouseUp,onMouseDown,sentStyle}=props;
 
 			const style={
 				padding:'.5rem 1rem',
 				'background-color':'tomato',
 				'font-size': '2rem',
 				'border':'0.1rem solid black',
-				/*simulate button push effect*/
-				'border-top':all['num-button-border-top'],
-				'border-left':all['num-button-border-left'],
-				...props.style,
+				
+				...sentStyle,
 			};
-			const onClickDefault = e=>all['do-num-button-click'](e,text);
-			return <button id={id} style={style} onClick={onClick===undefined ? onClickDefault : onClick}
-			onMouseDown={all['do-num-button-down']} onMouseUp={all['do-num-button-up']}
+			
+			return <button id={id} style={style} onClick={onClick} onMouseDown={onMouseDown} onMouseUp={onMouseUp}
 			>
 				{text}
 			</button>;
 		};
 		//--------------------------- Display ---------------------------//
 		const Display= props=> {
-			const {all}=props;
+			
+			const {text,sentStyle}=props;
 			
 			const style={
 				'display':'grid',
@@ -276,11 +279,10 @@
 				'justify-self':'stretch',
 				'font-size': '1rem',
 				'gap': '1rem',
-				...props.style,
+				...sentStyle,
 			};
 			
-			//result display
-			const display1Style={
+			const displayStyle={
 				'grid-column':'1/2',
 				'text-align':'right',
 				'font-size': '4rem'
@@ -288,19 +290,34 @@
 			
 
 			return <div style={style}>
-				<div id='display' style={display1Style}>{all.array.join('')}</div>
+				<div id='display' style={displayStyle}>{text}</div>
 			</div>;
 		};
 		//--------------------------- Keys ---------------------------//
 		const Keys=props=>{
-			const {all}=props;
+			const {
+				clearState,
+				numKeysStyleState,
+				/**/
+				onClearClick,
+				onClearUp,
+				onClearDown,
+				onNumKeyUp,
+				onNumKeyDown,
+				onNumKeyClick,
+				onOperatorClick,
+				onDecimalClick,
+				onEqualsClick,
+				sentStyle
+			}=props;
+		
 
 			const style={
 				/*width:'50%',*/
 				display:'grid',
 				'grid-template-columns':'repeat(4,minmax(0,1fr))',
 				'background-color':'green',
-				...props.style
+				...sentStyle
 			};
 			
 			const clearStyle={
@@ -311,38 +328,56 @@
 				'font-size': '2rem',
 				'text-align':'right',
 				'padding-right':'0.5rem',
-				border:all['clear-button-border'],
-				'border-right-style': all['clear-button-border-right-style'],
-				'border-right-color': all['clear-button-border-right-color'],
-				'border-bottom-style': all['clear-button-border-bottom-style'],
-				'border-bottom-color': all['clear-button-border-bottom-color']
+				/**/
+				'border':clearState['border'],
+				'border-bottom-style': clearState['border-bottom-style'],
+				'border-bottom-color': clearState['border-bottom-color'],
+				'border-right-style': clearState['border-right-style'],
+				'border-right-color': clearState['border-right-color'],
+
 			};
 			
 			const operationsStyle={
 				'margin':'0.5rem 0'
 			};
 			
+			const allKeysStyle={
+				/*help simulate button push effect*/
+				'border-top':numKeysStyleState['border-top'],
+				'border-left':numKeysStyleState['border-left']
+			}
+			
+			/* keys 0-9 */
 			const keys='1/one 2/two 3/three 4/four 5/five 6/six 7/seven 8/eight 9/nine 0/zero';
 			
-			const array=keys.split(' ').map(s0=>{
-				const [s,id]=s0.split('/');
-				return <Button text={s} id={id} all={all}/>;
+			const numKeysArray= keys.split(' ').map(s=>{
+				const [text,id]=s.split('/');
+				return <Button sentStyle={allKeysStyle} text={text} id={id} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>;
 			});
 
+			/*
+				operators + - * /
+			*/
+
+			const operators=['+,add', '-,subtract', 'x,multiply', '/,divide'];
+			const operatorsArray= operators.map(s=>{
+				const [symbol, id]= s.split(',');
+				
+				return <Button sentStyle={{...operationsStyle,...allKeysStyle}} onClick={event=> onOperatorClick(event,symbol)} id={id} text={symbol} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>;
+				
+			});
+			
 			return (<div style={style}>
-				<i id='clear' style={clearStyle} className="fa-solid fa-delete-left" onClick={all['do-clear-click']} onMouseUp={all['do-clear-up']} onMouseDown={all['do-clear-down']}/>
+				<i id='clear' style={clearStyle} className="fa-solid fa-delete-left" onClick={onClearClick} onMouseUp={onClearUp} onMouseDown={onClearDown}/>
 				
-				<Button style={operationsStyle} onClick={e=>all['do-operator-button-click'](e,'+')} id="add" text={'+'} all={all}/>
-				<Button style={operationsStyle} onClick={e=>all['do-operator-button-click'](e,'-')}  id="subtract" text={'-'} all={all}/>
-				<Button style={operationsStyle} onClick={e=>all['do-operator-button-click'](e,'x')}  id="multiply" text={'x'} all={all}/>
-				<Button style={operationsStyle} onClick={e=>all['do-operator-button-click'](e,'/')}  id="divide" text={'/'} all={all}/>
+				{operatorsArray}
 				
-				{array}
+				{numKeysArray}
 				
-				<Button text={'.'} id="decimal" all={all} onClick={all['do-decimal-point-click']}/>				
+				<Button sentStyle={allKeysStyle} text={'.'} id="decimal" onClick={onDecimalClick} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>				
 				
-				<Button text={'='} id="equals" all={all} style={{'background-color':'teal'}}
-				onClick={all['do-equals-click']}
+				<Button text={'='} id="equals" sentStyle={{'background-color':'teal',...allKeysStyle}}
+				onClick={onEqualsClick} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}
 				/>
 			
 			</div>);
@@ -363,12 +398,28 @@
 				'padding': '2em'
 			};
 
-
+			console.log('Calc',all);
+			
 			return (
 			<div style={style}>
 				
 				<Display text={text} all={all}/>
-				<Keys style={{'justify-self':'center'}} all={all}/>
+
+				<Keys
+				sentStyle={{'justify-self':'center'}}
+				clearState={all.clearState}
+				numKeysStyleState={all.numKeysStyleState}
+				onClearClick={all['do-clear-button-click']}
+				onClearUp={all['do-clear-up']}
+				onClearDown={all['do-clear-down']}
+				onNumKeyUp={all['do-num-button-up']}
+				onNumKeyDown={all['do-num-button-down']}
+				onNumKeyClick={all['do-number-button-click']}
+				onOperatorClick={all['do-operator-button-click']}
+				onDecimalClick={all['do-decimal-point-click']}
+				onEqualsClick={all['do-equals-button-click']}
+				
+			/>
 
 			</div>);
 		};
@@ -381,7 +432,7 @@
 			
 			}
 			componentDidMount(){
-				/**/
+				/*tests*/
 				let array=[
 					[' 5 . 5 . 5 '				,'5.55'		],
 					['0/2'						,'0'		],
@@ -401,6 +452,7 @@
 					[' 10 + 3 '					,'13'		],
 					[' 2 / 7 '					,'0.2857142857142857'			]
 				];
+				//
 				array=array.map(sub=>{
 					const [e,v1]=sub;
 					const [v2,steps]=evalExp(e,true);
@@ -435,7 +487,7 @@
 				<div style={style}>
 					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
 					
-					<Calc style={calcStyle} text={this.props['display']} 
+					<Calc style={calcStyle} text={this.props.calcState.display} 
 					all={all}/>
 					
 					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
