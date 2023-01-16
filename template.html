@@ -30,7 +30,7 @@
 			margin: 0;
 		}
 		*{
-			outline:2px solid black;
+			outline:0px solid black;
 			font-family: 'Lucida Consolas', monospace, 'Tahoma', sans-serif;
 			color: black
 		}
@@ -168,11 +168,15 @@
 			const {display,number,array,initial}=newState;	
 			const prevZero= number==='0';
 			
+			//console.log('--before--',newState);
+			
 			if(type==='clear-click'){
 				
 				newState['initial']=true;
 				newState['array']=[];
 				newState['number']='0';
+				
+				//console.log('--clear-click--',newState);
 					
 			}
 			else if(type==='operator-click'){
@@ -240,7 +244,7 @@
 				const [result,ok]=evalExp(exp,false,true);
 				
 				//exception thrown
-				if(ok===false){
+				if(ok===false || isFinite(result)===false){/*incudes isNaN()*/
 					newState['display']=errors['exp'];
 					newState['number']='';
 					newState['array']=[];
@@ -254,7 +258,11 @@
 					newState['initial']=false;
 				}
 			}
-					
+			else{
+				return newState;
+			}
+			
+			//console.log('--after--',newState);
 			newState['display']=`${newState['array'].join('')}${newState['number']}`;
 			return newState;	
 		
@@ -344,7 +352,7 @@
 
 			const style={
 				padding:'.5rem 1rem',
-				'background-color':'gray',
+				'background-color':'teal',
 				'font-size': '2rem',
 				'border':'0.1rem solid black',
 				
@@ -364,6 +372,7 @@
 			const style={
 				'display':'grid',
 				'grid-template-columns':'1fr',
+				'grid-template-rows':'1fr',
 				'align-self':'stretch',
 				'justify-self':'stretch',
 				'font-size': '1rem',
@@ -374,7 +383,8 @@
 			const displayStyle={
 				'grid-column':'1/2',
 				'text-align':'right',
-				'font-size': '4rem'
+				'font-size': '2rem',
+				'padding':'0 0.5rem'
 			};
 			
 
@@ -405,7 +415,7 @@
 				/*width:'50%',*/
 				display:'grid',
 				'grid-template-columns':'repeat(4,minmax(0,1fr))',
-				'background-color':'green',
+				'background-color':'transparent',
 				...sentStyle
 			};
 			
@@ -413,12 +423,13 @@
 				'align-self':'center',
 				'grid-column':'1/5',
 				'cursor':'pointer',
-				'background-color':'tomato',
+				'background-color':'teal',
 				'font-size': '2rem',
 				'text-align':'right',
 				'padding-right':'0.5rem',
 				/**/
 				'border':clearState['border'],
+				'border-top':'none',
 				'border-bottom-style': clearState['border-bottom-style'],
 				'border-bottom-color': clearState['border-bottom-color'],
 				'border-right-style': clearState['border-right-style'],
@@ -465,7 +476,7 @@
 				
 				<Button sentStyle={allKeysStyle} text={'.'} id="decimal" onClick={event => onDecimalClick(event,'.')} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>				
 				
-				<Button text={'='} id="equals" sentStyle={{'background-color':'teal',...allKeysStyle}}
+				<Button text={'='} id="equals" sentStyle={{'background-color':'tomato',...allKeysStyle}}
 				onClick={onEqualsClick} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}
 				/>
 			
@@ -479,21 +490,34 @@
 
 			const style={
 				'display':'grid',
+				'grid-template-columns':'repeat(3,auto)',
+				'grid-template-rows':'repeat(3,auto)',
 				'justify-items':'stretch',
 				/*'background-color': 'red',*/
 				...props.style
 			};
-			const buttonStyle={
-				'padding': '2em'
+			const displayStyle={
+				'grid-column':'2',
+				'grid-row':'1',
+				'border':'0.5rem solid black',
+				
 			};
-			
+
+			const keysStyle={
+				'border':'0.25rem solid black',
+				'border-top':'none',
+				'justify-self':'center',
+				'grid-column':'2',
+				'grid-row':'3'
+				
+			};
 			return (
 			<div style={style}>
 				
-				<Display text={text} all={all}/>
+				<Display text={text} sentStyle={displayStyle}/>
 
 				<Keys
-				sentStyle={{'justify-self':'center'}}
+				sentStyle={keysStyle}
 				clearState={all.clearState}
 				numKeysStyleState={all.numKeysStyleState}
 				onClearClick={all['do-clear-button-click']}
@@ -570,15 +594,15 @@
 				//calculator
 				const calcStyle={
 				};
-				return (//React Redux JS Calculator//by Abdullah Fatota
+				return (
 				<div style={style}>
 					
-					<h1 style={headerFooterStyle}></h1>
+					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
 					
 					<Calc style={calcStyle} text={this.props.calcState.display} 
 					all={all}/>
 					
-					<footer style={headerFooterStyle}><p></p></footer>
+					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
 				</div>);
 			}
 		}
