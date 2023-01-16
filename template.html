@@ -133,15 +133,14 @@
 		//------------------------------- initial state -------------------------------//
 		const errors={
 			'div-by-zero': 'Invalid operation, division by zero',
-			'leading-zeros':'Invalid input, leading zero values',
+			'leading-zero':'Invalid input, leading zero',
 			'exp':'Invalid expression'
 		};
 		const calcState0={
 			'display':'0',
-			'initial-once':true,/*bc 0*/
-			'number':true,/*bc 0*/
-			'number-has-decimal-point':false,/*bc 0*/
-			'error':false,
+			'initial':true,/*bc 0*/
+			'array':[],
+			'number':'0'
 			
 		};
 		const numberButtonsState0={
@@ -158,20 +157,88 @@
 		
 		//------------------------------- reducers -------------------------------//
 		const calcReducer=(state={...calcState0}, action)=>{
-			
-			const {key}=action;
+
+			const {value:key,type}=action;
 			const newState={
 				...state
 			};
-			const isZero= key==='0'
+			const {display,number,array,initial}=newState;	
+			const prevZero= number==='0';
 			
-			switch(action.type){
+			if(type==='clear-click'){
 				
-				default:
-					return state;
+				newState['initial']=true;
+				newState['array']=[];
+				newState['number']='0';
+					
 			}
+			else if(type==='operator-click'){
+
+				//console.log(state,key);
+				newState['array']=array.concat([number,key]);
+				newState['initial']=false;
+				newState['number']='';
+				//console.log(newState,array);
+				
+			}
+			//is leading-zero error?
+			else if(type==='number-click' && prevZero===true && initial===false){
+				
+					newState['display']=errors['leading-zero'],
+					newState['array']=[],
+					newState['number']='',
+					newState['initial']=true
+					
+					return newState;
+			}
+			//is after error, or, calc started?
+			else if(type==='number-click' && initial===true) {
+					newState['array']=[],
+					newState['number']=key,
+					newState['initial']=false
+			
+			}
+			//append digits to current number
+			else if(type==='number-click') {
+						
+					console.log('--before else 3--',state,key);
+					
+					newState['number']=`${number}${key}`
+					newState['initial']=false
+					
+					console.log('--after--',newState,key);
+			}
+			//ignore multiple '.'
+			//is 'initial' when calc started, or after error (e.g. leading-zero, exp)
+			//after error
+			else if(type==='decimal-point-click' && initial===true && number==='' && array===[]){
+				newState['number']=`0${key}`,
+				newState['initial']=false							
+			}
+			//calc started,
+			else if(type==='decimal-point-click' && initial===true && number==='0' && array===[]){
+				newState['number']=`${number}${key}`,
+				newState['initial']=false	
+			}
+			//ignore repeated .
+			else if(type==='decimal-point-click' && number.includes(key)){
+						
+					
+			}
+			//append .
+			else if(type==='decimal-point-click'){
+				newState['number']=`${number}${key}`,
+				newState['initial']=false
+				
+				
+			}
+					
+			newState['display']=`${newState['array'].join('')}${newState['number']}`;
+			return newState;	
+		
+
 		};
-		/*------------------------ end of buttonsReducer ------------------------*/
+		/*------------------------ end of calcReducer ------------------------*/
 		const clearButtonReducer=(state={...clearButtonState0}, action)=>{
 			switch(action.type){
 				
@@ -224,10 +291,10 @@
 		//--------------------------- map state to props ---------------------------//
 		//
 		const mapDispatchToProps= dispatchFunction=>({
-			'do-number-button-click': (event,text)=>dispatchFunction({type:'number-button-click', value:text}),
-			'do-operator-button-click': (event,text)=>dispatchFunction({type:'operator-button-click', value:text}),
-			'do-decimal-point-click': (event)=>dispatchFunction({type:'decimal-point-button-click'}),
-			'do-clear-button-click': (event)=>dispatchFunction({type:'clear-button-click'}),
+			'do-number-button-click': (event,text)=>dispatchFunction({type:'number-click', value:text}),
+			'do-operator-button-click': (event,text)=>dispatchFunction({type:'operator-click', value:text}),
+			'do-decimal-point-click': (event,text)=>dispatchFunction({type:'decimal-point-click',value:text}),
+			'do-clear-button-click': (event)=>dispatchFunction({type:'clear-click'}),
 			'do-equals-button-click': (event)=>dispatchFunction({type:'equals-button-click'}),
 			/*---*/
 			'do-button-hover': event=>dispatchFunction({type:'button-hover',target:event.target}),
@@ -255,7 +322,7 @@
 
 			const style={
 				padding:'.5rem 1rem',
-				'background-color':'tomato',
+				'background-color':'gray',
 				'font-size': '2rem',
 				'border':'0.1rem solid black',
 				
@@ -352,7 +419,7 @@
 			
 			const numKeysArray= keys.split(' ').map(s=>{
 				const [text,id]=s.split('/');
-				return <Button sentStyle={allKeysStyle} text={text} id={id} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>;
+				return <Button sentStyle={allKeysStyle} onClick={event=>onNumKeyClick(event,text)} text={text} id={id} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>;
 			});
 
 			/*
@@ -374,7 +441,7 @@
 				
 				{numKeysArray}
 				
-				<Button sentStyle={allKeysStyle} text={'.'} id="decimal" onClick={onDecimalClick} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>				
+				<Button sentStyle={allKeysStyle} text={'.'} id="decimal" onClick={event => onDecimalClick(event,'.')} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}/>				
 				
 				<Button text={'='} id="equals" sentStyle={{'background-color':'teal',...allKeysStyle}}
 				onClick={onEqualsClick} onMouseUp={onNumKeyUp} onMouseDown={onNumKeyDown}
@@ -397,8 +464,6 @@
 			const buttonStyle={
 				'padding': '2em'
 			};
-
-			console.log('Calc',all);
 			
 			return (
 			<div style={style}>
@@ -483,14 +548,15 @@
 				//calculator
 				const calcStyle={
 				};
-				return (
+				return (//React Redux JS Calculator//by Abdullah Fatota
 				<div style={style}>
-					<h1 style={headerFooterStyle}>React Redux JS Calculator</h1>
+					
+					<h1 style={headerFooterStyle}></h1>
 					
 					<Calc style={calcStyle} text={this.props.calcState.display} 
 					all={all}/>
 					
-					<footer style={headerFooterStyle}><p>by Abdullah Fatota</p></footer>
+					<footer style={headerFooterStyle}><p></p></footer>
 				</div>);
 			}
 		}
