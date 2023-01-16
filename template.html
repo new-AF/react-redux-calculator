@@ -76,7 +76,7 @@
 			})
 			return newValue0;
 		}
-		const evalExp=(value0,returnSteps=false)=>{
+		const evalExp=(value0,returnSteps=false,returnSuccess=false)=>{
 			const steps=[];
 			steps.push(`original,		${value0}`);
 			
@@ -116,6 +116,7 @@
 			//console.log('--- new value 3',newValue0);
 			steps.push(`--- step 3,		${newValue0}`);
 			
+			let successful=true;
 			/*4. eval uate math expression*/
 			try{
 				newValue0=eval(newValue0);
@@ -123,10 +124,12 @@
 			}
 			catch(e){
 				newValue0='ERROR';
+				successful=false;
 			}
 			steps.push(`--- step 4,		${newValue0}`);
 			
-			return returnSteps===true ? [newValue0,steps] : newValue0;
+			return returnSteps===true ? [newValue0,steps] : 
+				returnSuccess===true ? [newValue0,successful] : newValue0;
 		}
 		//------------------------------- actions -------------------------------//
 
@@ -201,12 +204,12 @@
 			//append digits to current number
 			else if(type==='number-click') {
 						
-					console.log('--before else 3--',state,key);
+					//console.log('--before else 3--',state,key);
 					
 					newState['number']=`${number}${key}`
 					newState['initial']=false
 					
-					console.log('--after--',newState,key);
+					//console.log('--after--',newState,key);
 			}
 			//ignore multiple '.'
 			//is 'initial' when calc started, or after error (e.g. leading-zero, exp)
@@ -231,6 +234,25 @@
 				newState['initial']=false
 				
 				
+			}
+			else if(type==='equals-click'){
+				const exp=`${newState['array'].join('')}${newState['number']}`;
+				const [result,ok]=evalExp(exp,false,true);
+				
+				//exception thrown
+				if(ok===false){
+					newState['display']=errors['exp'];
+					newState['number']='';
+					newState['array']=[];
+					newState['initial']=true;
+					
+					return newState;
+				}
+				else{
+					newState['number']=`${result}`;
+					newState['array']=[];
+					newState['initial']=false;
+				}
 			}
 					
 			newState['display']=`${newState['array'].join('')}${newState['number']}`;
@@ -295,7 +317,7 @@
 			'do-operator-button-click': (event,text)=>dispatchFunction({type:'operator-click', value:text}),
 			'do-decimal-point-click': (event,text)=>dispatchFunction({type:'decimal-point-click',value:text}),
 			'do-clear-button-click': (event)=>dispatchFunction({type:'clear-click'}),
-			'do-equals-button-click': (event)=>dispatchFunction({type:'equals-button-click'}),
+			'do-equals-button-click': (event)=>dispatchFunction({type:'equals-click'}),
 			/*---*/
 			'do-button-hover': event=>dispatchFunction({type:'button-hover',target:event.target}),
 			'do-button-leave': event=>dispatchFunction({type:'button-mouse-leave',target:event.target}),
