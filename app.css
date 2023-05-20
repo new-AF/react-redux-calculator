@@ -1,0 +1,18 @@
+* {
+  outline: 0px solid black;
+  font-family: "Lucida Consolas", monospace, "Tahoma", sans-serif;
+  color: black;
+}
+body {
+  margin: 0;
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  filter: brightness(1.5);
+}
+/*hover effect on icons too*/
+i:hover {
+  filter: brightness(1.5);
+}
