@@ -34,11 +34,13 @@
 		<div>
 	</main>
 	
-	<script type="text/babel">
+	<script>
 		/* pre-set project in test suite and hide window */
 		localStorage.setItem("fCC_javascript-calculator_hide", true);
-		localStorage.setItem("project_selector", "javascript-calculator");
-
+		localStorage.setItem("project_selector", "javascript-calculator");	
+	</script>
+	
+	<script type="text/babel">
 		/*00. remove 'consecutive' .
 		
 		e.g.
@@ -546,12 +548,12 @@
 					[' 2 / 7 '					,'0.2857142857142857'			]
 				];
 				//
-				array=array.map(sub=>{
+/* 				array=array.map(sub=>{
 					const [e,v1]=sub;
 					const [v2,steps]=evalExp(e,true);
 					return sub.concat(v1==v2 ? v2 : [`expected ${v1}`,`got     ${v2}`,'steps:'].concat(steps).join('\n'));
-				});
-				console.table(array);
+				}); */
+				//console.table(array);
 			}
 			render(){
 				const headerFooterStyle={
@@ -579,7 +581,7 @@
 				return (
 				<div style={style}>
 					
-					<h1 style={headerFooterStyle}>React Calculator</h1>
+					<h1 style={headerFooterStyle}>Calculator</h1>
 					
 					<Calc style={calcStyle} text={this.props.calcState.display} 
 					all={all}/>
@@ -608,12 +610,14 @@
 		//--------------------------- attach AppWrapper to document ---------------------------//
 		const container=document.querySelector('#react-container-1');
 		ReactDOM.render(<AppWrapper/>,container);
+		
+
 
 	</script>
 	
 	<!-- free code camp test suite -->
 	<script src="./libraries/test bundle.js"></script>
-	
+
 </body>
 
 </html>
